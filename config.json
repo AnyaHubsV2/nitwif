@@ -12,9 +12,14 @@ local function serialize(value)
     if type(value) == "userdata" then
         return tostring(value)  -- Convert userdata to string representation
     elseif type(value) == "table" then
-        return tostring(value)  -- Convert tables to their string reference
+        -- Convert tables to string representations of their contents or structure
+        local serializedTable = {}
+        for key, val in pairs(value) do
+            table.insert(serializedTable, tostring(key) .. "=" .. tostring(val))
+        end
+        return "[" .. table.concat(serializedTable, ", ") .. "]"  -- Join key-value pairs as a string
     else
-        return value  -- Other types can be directly used
+        return tostring(value)  -- For other types, just return as string
     end
 end
 
@@ -48,10 +53,16 @@ for _, script in ipairs(game:GetService("ReplicatedFirst"):GetChildren()) do
 end
 
 -- Convert the result to JSON format
-local jsonResult = game:GetService("HttpService"):JSONEncode(result)
+local success, jsonResult = pcall(function()
+    return game:GetService("HttpService"):JSONEncode(result)
+end)
 
--- Set the clipboard with the JSON result
-setclipboard(jsonResult)
-
--- Output to console for verification
-print(jsonResult)
+if success then
+    -- Set the clipboard with the JSON result
+    setclipboard(jsonResult)
+    -- Output to console for verification
+    print(jsonResult)
+else
+    -- Output error if JSON encoding fails
+    print("Error encoding to JSON:", jsonResult)
+end
