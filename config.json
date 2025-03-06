@@ -1,1 +1,57 @@
-{"version":"1.0"}
+local result = {
+    functions_found = {},
+    strings_found = {},
+    numbers_found = {},
+    booleans_found = {},
+    tables_found = {},
+    userdata_found = {}
+}
+
+-- Helper function to serialize userdata and complex tables
+local function serialize(value)
+    if type(value) == "userdata" then
+        return tostring(value)  -- Convert userdata to string representation
+    elseif type(value) == "table" then
+        return tostring(value)  -- Convert tables to their string reference
+    else
+        return value  -- Other types can be directly used
+    end
+end
+
+-- Loop through all scripts in ReplicatedFirst
+for _, script in ipairs(game:GetService("ReplicatedFirst"):GetChildren()) do
+    if script:IsA("LocalScript") then  -- Only target LocalScripts in ReplicatedFirst
+        -- Iterate through all the functions in the current LocalScript's script
+        for _, obj in ipairs(getgc(true)) do
+            if type(obj) ~= "function" then  -- Skip functions
+                -- Directly check the type of the variable
+                if type(obj) == "number" then
+                    table.insert(result.numbers_found, obj)
+                elseif type(obj) == "string" then
+                    table.insert(result.strings_found, obj)
+                elseif type(obj) == "boolean" then
+                    table.insert(result.booleans_found, obj)
+                elseif type(obj) == "table" then
+                    table.insert(result.tables_found, serialize(obj))  -- Serialize table
+                elseif type(obj) == "userdata" then
+                    table.insert(result.userdata_found, serialize(obj))  -- Serialize userdata
+                end
+            else
+                -- If it's a function, check the function source to ensure it's inside ReplicatedFirst
+                local info = debug.getinfo(obj)
+                if info and info.source and string.find(info.source, script:GetFullName()) then
+                    table.insert(result.functions_found, info.source)
+                end
+            end
+        end
+    end
+end
+
+-- Convert the result to JSON format
+local jsonResult = game:GetService("HttpService"):JSONEncode(result)
+
+-- Set the clipboard with the JSON result
+setclipboard(jsonResult)
+
+-- Output to console for verification
+print(jsonResult)
