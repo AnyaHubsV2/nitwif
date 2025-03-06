@@ -52,17 +52,39 @@ for _, script in ipairs(game:GetService("ReplicatedFirst"):GetChildren()) do
     end
 end
 
--- Convert the result to JSON format
-local success, jsonResult = pcall(function()
-    return game:GetService("HttpService"):JSONEncode(result)
-end)
-
-if success then
-    -- Set the clipboard with the JSON result
-    setclipboard(jsonResult)
-    -- Output to console for verification
-    print(jsonResult)
-else
-    -- Output error if JSON encoding fails
-    print("Error encoding to JSON:", jsonResult)
+-- Construct the result as a plain text
+local resultText = "Functions Found:\n"
+for _, func in ipairs(result.functions_found) do
+    resultText = resultText .. "- " .. func .. "\n"
 end
+
+resultText = resultText .. "\nStrings Found:\n"
+for _, str in ipairs(result.strings_found) do
+    resultText = resultText .. "- " .. str .. "\n"
+end
+
+resultText = resultText .. "\nNumbers Found:\n"
+for _, num in ipairs(result.numbers_found) do
+    resultText = resultText .. "- " .. num .. "\n"
+end
+
+resultText = resultText .. "\nBooleans Found:\n"
+for _, bool in ipairs(result.booleans_found) do
+    resultText = resultText .. "- " .. tostring(bool) .. "\n"
+end
+
+resultText = resultText .. "\nTables Found:\n"
+for _, tbl in ipairs(result.tables_found) do
+    resultText = resultText .. "- " .. tbl .. "\n"
+end
+
+resultText = resultText .. "\nUserdata Found:\n"
+for _, userdata in ipairs(result.userdata_found) do
+    resultText = resultText .. "- " .. userdata .. "\n"
+end
+
+-- Set the clipboard with the result text
+setclipboard(resultText)
+
+-- Output to console for verification
+print(resultText)
